@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+
+    <title>狗星窝 · 全能完整版（保留所有功能）</title>
+
+    <style>
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { background: #d9d2c0; font-family: system-ui; height: 100vh; display: flex; align-items: center; justify-content: center; padding: 12px; position: relative; }
+
+        .copy-btn { position: fixed; top: 20px; right: 20px; z-index: 100; background: #e4a3b7; border: none; padding: 8px 16px; border-radius: 40px; color: white; font-size: 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        .app { width: 100%; max-width: 1400px; height: 95vh; background: #f4efe7; border-radius: 2rem; display: flex; overflow: hidden; position: relative; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15); }
+
+        .sidebar { width: 280px; background: #fce4ec; border-right: 1px solid #f8c1cf; display: flex; flex-direction: column; overflow-y: auto; transition: transform 0.3s ease; z-index: 10; height: 100%; max-height: 100%; }
+
+        .chat { flex: 1; display: flex; flex-direction: column; background: #eef5fc; min-width: 0; }
+
+        .menu-btn { display: none; position: fixed; top: 20px; left: 20px; z-index: 20; background: #e4a3b7; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 24px; color: white; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        .menu-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 15; }
+
+        @media (max-width: 700px) {
+
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 280px; transform: translateX(-100%); z-index: 30; border-radius: 0 1rem 1rem 0; }
+
+            .sidebar.open { transform: translateX(0); }
+
+            .menu-btn { display: flex; align-items: center; justify-content: center; }
+
+            .chat { width: 100%; border-radius: 1rem; }
+
+            .chat-header { padding-left: 60px; }
+
+        }
+
+        .header { padding: 16px 12px 8px; border-bottom: 1px solid #f8c1cf; }
+
+        .header h2 { font-size: 1.2rem; color: #ad6a7c; }
+
+        .member-list { padding: 12px; border-bottom: 1px solid #f8c1cf; }
+
+        .member-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; color: #7e4b5c; font-size: 0.85rem; justify-content: space-between; }
+
+        .member-info { display: flex; align-items: center; gap: 8px; }
+
+        .member-avatar { width: 32px; height: 32px; background: #f5b0c0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; overflow: hidden; }
+
+        .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .edit-avatar { background: none; border: none; color: #c28aa0; cursor: pointer; font-size: 0.7rem; padding: 2px 6px; border-radius: 20px; background: #fce4ec; }
+
+        .setting-block { padding: 12px; border-bottom: 1px solid #f8c1cf; background: #fbf0f4; }
+
+        .setting-block h4 { font-size: 0.75rem; color: #ad6a7c; margin-bottom: 8px; }
+
+        .setting-row { display: flex; gap: 12px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+
+        .setting-row label { font-size: 0.7rem; color: #7e4b5c; }
+
+        .setting-row input { width: 70px; padding: 4px; border-radius: 20px; border: 1px solid #f8c1cf; text-align: center; }
+
+        .toggle-row { margin-top: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: #7e4b5c; }
+
+        .category-box, .phrase-box { padding: 12px; border-bottom: 1px solid #f8c1cf; background: #fdf5f8; }
+
+        .category-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+
+        .add-cat-btn { background: #e4a3b7; border: none; border-radius: 20px; padding: 2px 10px; font-size: 0.7rem; cursor: pointer; color: white; }
+
+        .category-list { max-height: 120px; overflow-y: auto; background: #fff9fa; border-radius: 16px; padding: 6px; margin-bottom: 8px; }
+
+        .category-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; padding: 4px 8px; background: white; border-radius: 20px; margin-bottom: 4px; border: 1px solid #fad1db; }
+
+        .del-cat { background: none; border: none; color: #c28aa0; cursor: pointer; }
+
+        .phrase-list { max-height: 140px; overflow-y: auto; background: #fff9fa; border-radius: 20px; padding: 6px; margin-bottom: 8px; }
+
+        .phrase-item { font-size: 0.7rem; background: #ffffff; padding: 4px 8px; border-radius: 20px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #fad1db; }
+
+        .phrase-info { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+        .phrase-cat { font-size: 0.6rem; background: #e4a3b7; color: white; padding: 0 6px; border-radius: 12px; }
+
+        .del-phrase { background: none; border: none; color: #c28aa0; cursor: pointer; }
+
+        .add-phrase { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+
+        .add-phrase input { flex: 2; border: none; border-radius: 30px; padding: 5px 10px; font-size: 0.7rem; background: white; }
+
+        .add-phrase select { flex: 1; border: none; border-radius: 30px; padding: 5px; font-size: 0.7rem; }
+
+        .add-phrase button { background: #e4a3b7; border: none; border-radius: 30px; padding: 0 12px; cursor: pointer; color: white; font-size: 0.7rem; }
+
+        .batch-add { padding: 12px; border-bottom: 1px solid #f8c1cf; background: #fbf0f4; }
+
+        .batch-add h4 { font-size: 0.75rem; color: #ad6a7c; margin-bottom: 6px; }
+
+        .batch-add textarea { width: 100%; height: 100px; background: white; border: 1px solid #f8c1cf; border-radius: 16px; padding: 8px; font-size: 0.7rem; font-family: monospace; resize: vertical; margin-bottom: 8px; }
+
+        .batch-add select { width: 100%; margin-bottom: 8px; background: white; border-radius: 30px; border: 1px solid #f8c1cf; padding: 5px; font-size: 0.7rem; }
+
+        .batch-add button, .clear-all-btn { background: #e4a3b7; border: none; border-radius: 30px; padding: 5px 0; width: 100%; color: white; font-size: 0.7rem; cursor: pointer; margin-top: 4px; }
+
+        .clear-all-btn { background: #c28aa0; }
+
+        .import-export { display: flex; gap: 6px; margin-top: 8px; }
+
+        .import-export button { background: #c1d9f0; color: #3a5c7c; border: none; border-radius: 30px; padding: 5px 0; width: 48%; font-size: 0.7rem; cursor: pointer; }
+
+        .import-json-btn, .export-json-btn { background: #c1d9f0; color: #3a5c7c; margin-top: 8px; width: 100%; border: none; border-radius: 30px; padding: 5px 0; font-size: 0.7rem; cursor: pointer; }
+
+        .export-json-btn { background: #b7c3b0; margin-top: 4px; }
+
+        .chat-header { padding: 12px 16px; background: #e3f0fa; border-bottom: 1px solid #cde1ef; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+        .chat-header h3 { color: #2c577c; font-size: 1rem; }
+
+        .action-buttons { display: flex; gap: 8px; }
+
+        .video-call-btn, .letter-btn, .force-reply-btn { background: #b7c3b0; border: none; padding: 5px 14px; border-radius: 40px; cursor: pointer; color: #2e577a; font-size: 0.8rem; }
+
+        .force-reply-btn { background: #e4a3b7; color: white; }
+
+        .msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #f6fafd; transition: background 0.2s; }
+
+        .msg { max-width: 90%; display: flex; gap: 10px; align-items: flex-start; position: relative; }
+
+        .msg-avatar { width: 36px; height: 36px; background: #b7c3b0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; overflow: hidden; flex-shrink: 0; }
+
+        .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .msg-content { flex: 1; }
+
+        .msg-name { font-size: 0.7rem; color: #5a7c9e; margin-bottom: 4px; font-weight: 500; }
+
+        .bubble { padding: 8px 14px; border-radius: 18px; font-size: 0.85rem; background: white; display: inline-block; max-width: 100%; word-wrap: break-word; }
+
+        .msg-time { font-size: 0.6rem; color: #93aec9; margin-top: 4px; }
+
+        .msg-revoke { position: absolute; right: 0; top: 0; font-size: 0.7rem; color: #c28aa0; cursor: pointer; background: rgba(255,255,240,0.8); padding: 0 6px; border-radius: 12px; display: none; }
+
+        .msg:hover .msg-revoke { display: block; }
+
+        .input-area { display: flex; gap: 10px; padding: 12px 16px; background: #e3f0fa; border-top: 1px solid #cde1ef; align-items: center; flex-wrap: wrap; }
+
+        .input-area input { flex: 2; border: none; background: white; border-radius: 40px; padding: 12px 16px; font-size: 0.95rem; min-width: 120px; }
+
+        .input-area button { background: #b7d0e8; border: none; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; color: #2c577c; flex-shrink: 0; }
+
+        .call-modal, .incoming-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
+
+        .call-card { background: #fff9fd; padding: 24px; border-radius: 2rem; text-align: center; width: 280px; }
+
+        .call-card h3 { margin-bottom: 16px; color: #ad6a7c; }
+
+        .call-card button { background: #b7c3b0; border: none; padding: 8px 20px; border-radius: 40px; margin: 8px; cursor: pointer; }
+
+        .timer { font-size: 1.2rem; font-weight: bold; margin: 12px 0; }
+
+        .letter-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1001; }
+
+        .letter-card { background: #fff9fd; padding: 24px; border-radius: 2rem; width: 90%; max-width: 500px; }
+
+        .letter-card textarea { width: 100%; height: 200px; margin: 12px 0; padding: 12px; border-radius: 1rem; border: 1px solid #f8c1cf; font-family: inherit; }
+
+        .letter-card button { background: #b7c3b0; border: none; padding: 8px 20px; border-radius: 40px; margin-right: 8px; cursor: pointer; }
+
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 40px; font-size: 14px; z-index: 2000; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+
+        .ringtone-preview { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+
+        .ringtone-preview button { background: #c1d9f0; border: none; border-radius: 30px; padding: 4px 10px; font-size: 0.7rem; cursor: pointer; }
+
+    </style>
+
+</head>
+
+<body>
+
+<button class="copy-btn" id="copyBtn">📋 复制代码</button>
+
+<div class="app">
+
+    <div class="sidebar" id="sidebar">
+
+        <div class="header"><h2>🐶⭐ 狗星窝 · 全能完整版</h2></div>
+
+        <div class="member-list" id="memberList"></div>
+
+        <div class="setting-block">
+
+            <h4>⏱️ 主动发送间隔 (分钟)</h4>
+
+            <div class="setting-row">
+
+                <label>最小</label><input type="number" id="activeMinMin" step="0.5" min="0.5" value="1">
+
+                <label>最大</label><input type="number" id="activeMaxMin" step="0.5" min="1" value="5">
+
+            </div>
+
+            <div class="toggle-row"><input type="checkbox" id="enableActiveTalk" checked> <label>开启主动发送</label></div>
+
+        </div>
+
+        <div class="setting-block">
+
+            <h4>💬 回复延迟 (秒)</h4>
+
+            <div class="setting-row">
+
+                <label>最小</label><input type="number" id="replyDelaySecMin" step="1" min="1" value="5">
+
+                <label>最大</label><input type="number" id="replyDelaySecMax" step="1" min="2" value="90">
+
+            </div>
+
+        </div>
+
+        <div class="setting-block">
+
+            <h4>✉️ 回信延迟 (小时)</h4>
+
+            <div class="setting-row">
+
+                <label>最小</label><input type="number" id="letterDelayMin" step="0.5" min="1" value="5">
+
+                <label>最大</label><input type="number" id="letterDelayMax" step="0.5" min="2" value="18">
+
+            </div>
+
+        </div>
+
+        <div class="setting-block">
+
+            <h4>📞 随机来电间隔 (分钟)</h4>
+
+            <div class="setting-row">
+
+                <label>最小</label><input type="number" id="callMinMin" step="0.5" min="1" value="5">
+
+                <label>最大</label><input type="number" id="callMaxMin" step="0.5" min="2" value="15">
+
+            </div>
+
+            <div class="toggle-row"><input type="checkbox" id="enableIncomingCall" checked> <label>开启随机来电</label></div>
+
+        </div>
+
+        <div class="batch-add">
+
+            <h4>📝 批量添加字卡（一行一句）</h4>
+
+            <textarea id="batchPhrasesText" placeholder="例如：&#10;想你了&#10;今天吃什么"></textarea>
+
+            <select id="batchCategorySelect"></select>
+
+            <button id="batchAddBtn">➕ 批量添加</button>
+
+            <button id="clearAllPhrasesBtn" class="clear-all-btn">🗑️ 一键清空所有字卡</button>
+
+        </div>
+
+        <div class="category-box">
+
+            <div class="category-header"><h4>🏷️ 词库分类</h4><button id="addCategoryBtn">+ 新建</button></div>
+
+            <div class="category-list" id="categoryList"></div>
+
+        </div>
+
+        <div class="phrase-box">
+
+            <h4>📝 词库句子</h4>
+
+            <div class="phrase-list" id="phraseList"></div>
+
+            <div class="add-phrase">
+
+                <input type="text" id="newPhraseText" placeholder="新句子...">
+
+                <select id="newPhraseCat"></select>
+
+                <button id="addPhraseBtn">+</button>
+
+            </div>
+
+            <div class="import-export">
+
+                <button id="importPhrasesBtn" class="import-json-btn">📂 导入词库JSON</button>
+
+                <button id="exportPhrasesBtn" class="export-json-btn">📤 导出词库JSON</button>
+
+            </div>
+
+            <div class="import-export" style="margin-top: 4px;">
+
+                <button id="importMessagesBtn" style="background:#c1d9f0;">📥 导入聊天记录</button>
+
+                <button id="exportMessagesBtn" style="background:#b7c3b0;">📤 导出聊天记录</button>
+
+            </div>
+
+        </div>
+
+        <div class="setting-block" style="margin-top: auto;">
+
+            <h4>🎨 聊天区背景</h4>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+
+                <button class="bg-btn" data-bg="#f6fafd">默认蓝</button>
+
+                <button class="bg-btn" data-bg="#fff3d1">浅黄</button>
+
+                <button class="bg-btn" data-bg="#e0f2e0">浅绿</button>
+
+                <button class="bg-btn" data-bg="#f0e6ff">淡紫</button>
+
+                <button id="resetBgBtn" class="bg-btn">重置背景</button>
+
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+
+                <span style="font-size:0.7rem;">自定义颜色</span>
+
+                <input type="color" id="customBgColor" value="#f6fafd" style="flex:1; height:28px;">
+
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px;">
+
+                <span style="font-size:0.7rem;">🖼️ 背景图片</span>
+
+                <input type="file" id="bgImageUpload" accept="image/*" style="font-size:0.7rem;">
+
+            </div>
+
+        </div>
+
+        <div class="setting-block">
+
+            <h4>🔔 来电铃声</h4>
+
+            <input type="file" id="ringtoneUpload" accept="audio/*" style="font-size:0.7rem;">
+
+            <div class="ringtone-preview">
+
+                <button id="testRingtoneBtn">试听</button>
+
+                <button id="resetRingtoneBtn">重置默认</button>
+
+            </div>
+
+            <div style="font-size: 0.65rem; color: #7e4b5c; margin-top: 4px;">上传自己的铃声，会自动保存</div>
+
+        </div>
+
+    </div>
+
+    <div class="chat">
+
+        <div class="chat-header">
+
+            <h3>🏠 三人小窝 · 全员可见</h3>
+
+            <div class="action-buttons">
+
+                <button id="forceReplyBtn" class="force-reply-btn">📬 补发回信</button>
+
+                <button id="videoCallBtn" class="video-call-btn">📹 视频通话</button>
+
+                <button id="letterBtn" class="letter-btn">✉️ 写信</button>
+
+            </div>
+
+        </div>
+
+        <div class="msgs" id="msgsArea"></div>
+
+        <div class="input-area">
+
+            <input type="text" id="msgInput" placeholder="说点什么...">
+
+            <button id="emojiBtn">🖼️</button>
+
+            <button id="sendBtn">➤</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<div id="callModal" class="call-modal"><div class="call-card"><h3 id="callTitle">选择通话对象</h3><div id="callButtons"><button data-target="老狗·祁煜">打给老狗</button><button data-target="星儿·大宝">打给星儿</button></div><div id="callStatus"></div><div id="callTimer" class="timer"></div><button id="hangupBtn" style="display:none;">挂断</button><button id="closeCallBtn">关闭</button></div></div>
+
+<div id="incomingModal" class="incoming-modal"><div class="call-card"><h3 id="incomingFrom">📞 来电</h3><button id="acceptBtn">接听</button><button id="rejectBtn">拒绝</button></div></div>
+
+<div id="letterModal" class="letter-modal"><div class="letter-card"><h3>✉️ 写一封信</h3><textarea id="letterContent" placeholder="给老狗和星儿写点什么..."></textarea><button id="sendLetterBtn">发送</button><button id="closeLetterBtn">取消</button></div></div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+
+    // ---------- 数据存储 KEY ----------
+
+    const NEW_PREFIX = 'gxw_final_';
+
+    const AVATAR_KEY = 'dogstar_avatars';
+
+    // 全局变量
+
+    let allMessages = [], phrases = [], categories = ["默认"];
+
+    let activeMin=1, activeMax=5, enableActive=true;
+
+    let replyDelaySecMin=5, replyDelaySecMax=90;
+
+    let letterDelayMin=5, letterDelayMax=18;
+
+    let callMin=5, callMax=15, enableIncoming=true;
+
+    let activeTimer=null, incomingTimer=null, currentLetterTimer=null;
+
+    let callActive=false, callTimerInterval=null, callStartTime=null, incomingTimeout=null;
+
+    let ringtoneUrl=null, defaultRingtoneUrl=null, currentRingtoneAudio=null;
+
+    let memberAvatars = { "老狗·祁煜": "🐟", "星儿·大宝": "⭐", "丫丫": "🌸" };
+
+    const memberNames = ["老狗·祁煜", "星儿·大宝", "丫丫"];
+
+    const currentUser = "丫丫";
+
+    let originalTitle = document.title;
+
+    let titleInterval = null;
+
+    // 辅助函数
+
+    function getCurrentTime() { let d=new Date(); return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; }
+
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+    function showToast(msg) { let t=document.getElementById('toast'); t.innerText=msg; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2000); }
+
+    // 头像渲染
+
+    function renderAvatar(avatarData) {
+
+        if (!avatarData) return '<span>❓</span>';
+
+        if (avatarData.startsWith('data:image') || avatarData.startsWith('http')) {
+
+            return `<img src="${avatarData}" style="width:100%;height:100%;object-fit:cover;">`;
+
+        } else {
+
+            return `<span style="font-size:1.2rem;">${escapeHtml(avatarData)}</span>`;
+
+        }
+
+    }
+
+    function renderMemberList() {
+
+        const container = document.getElementById('memberList');
+
+        if (!container) return;
+
+        container.innerHTML = memberNames.map(name => {
+
+            const avatar = memberAvatars[name] || (name==="老狗·祁煜"?"🐟":name==="星儿·大宝"?"⭐":"🌸");
+
+            return `
+
+                <div class="member-item">
+
+                    <div class="member-info">
+
+                        <div class="member-avatar" data-name="${name}">${renderAvatar(avatar)}</div>
+
+                        <span>${escapeHtml(name)}</span>
+
+                    </div>
+
+                    <button class="edit-avatar" data-name="${name}">✎</button>
+
+                </div>
+
+            `;
+
+        }).join('');
+
+        document.querySelectorAll('.edit-avatar').forEach(btn => {
+
+            btn.addEventListener('click', () => editAvatar(btn.getAttribute('data-name')));
+
+        });
+
+    }
+
+    function editAvatar(name) {
+
+        const choice = prompt(`为 ${name} 设置头像：\n1. 输入 Emoji (如 🐟)\n2. 输入图片网址 (http...)\n3. 上传图片文件`, memberAvatars[name]);
+
+        if (!choice) return;
+
+        if (choice.startsWith('http') || choice.startsWith('data:image')) memberAvatars[name] = choice;
+
+        else if (choice.match(/^\p{Emoji}/u)) memberAvatars[name] = choice;
+
+        else if (choice) memberAvatars[name] = choice;
+
+        saveAvatars(); renderMemberList(); renderMessages();
+
+    }
+
+    function saveAvatars() { localStorage.setItem(AVATAR_KEY, JSON.stringify(memberAvatars)); }
+
+    function loadAvatars() {
+
+        const saved = localStorage.getItem(AVATAR_KEY);
+
+        if (saved) memberAvatars = JSON.parse(saved);
+
+        else memberAvatars = { "老狗·祁煜":"🐟", "星儿·大宝":"⭐", "丫丫":"🌸" };
+
+        renderMemberList();
+
+    }
+
+    // 消息存储
+
+    function saveAllData() {
+
+        localStorage.setItem(NEW_PREFIX + 'msgs', JSON.stringify(allMessages));
+
+        localStorage.setItem(NEW_PREFIX + 'phrases', JSON.stringify(phrases));
+
+        localStorage.setItem(NEW_PREFIX + 'cats', JSON.stringify(categories));
+
+        localStorage.setItem(NEW_PREFIX + 'activeMin', activeMin);
+
+        localStorage.setItem(NEW_PREFIX + 'activeMax', activeMax);
+
+        localStorage.setItem(NEW_PREFIX + 'enableActive', enableActive);
+
+        localStorage.setItem(NEW_PREFIX + 'replyDelaySecMin', replyDelaySecMin);
+
+        localStorage.setItem(NEW_PREFIX + 'replyDelaySecMax', replyDelaySecMax);
+
+        localStorage.setItem(NEW_PREFIX + 'letterDelayMin', letterDelayMin);
+
+        localStorage.setItem(NEW_PREFIX + 'letterDelayMax', letterDelayMax);
+
+        localStorage.setItem(NEW_PREFIX + 'callMin', callMin);
+
+        localStorage.setItem(NEW_PREFIX + 'callMax', callMax);
+
+        localStorage.setItem(NEW_PREFIX + 'enableIncoming', enableIncoming);
+
+    }
+
+    function loadAllData() {
+
+        let msgs = localStorage.getItem(NEW_PREFIX + 'msgs'); allMessages = msgs ? JSON.parse(msgs) : [];
+
+        let p = localStorage.getItem(NEW_PREFIX + 'phrases'); phrases = p ? JSON.parse(p) : [];
+
+        let c = localStorage.getItem(NEW_PREFIX + 'cats'); categories = c ? JSON.parse(c) : ["默认"];
+
+        if(phrases.length===0) phrases = [{ text: "嗯，我也想你", category: "默认" }];
+
+        if(categories.length===0) categories = ["默认"];
+
+        let aMin = localStorage.getItem(NEW_PREFIX + 'activeMin'); if(aMin) activeMin = parseFloat(aMin);
+
+        let aMax = localStorage.getItem(NEW_PREFIX + 'activeMax'); if(aMax) activeMax = parseFloat(aMax);
+
+        let enAct = localStorage.getItem(NEW_PREFIX + 'enableActive'); if(enAct) enableActive = enAct === 'true';
+
+        let rMin = localStorage.getItem(NEW_PREFIX + 'replyDelaySecMin'); if(rMin) replyDelaySecMin = parseFloat(rMin);
+
+        let rMax = localStorage.getItem(NEW_PREFIX + 'replyDelaySecMax'); if(rMax) replyDelaySecMax = parseFloat(rMax);
+
+        let lMin = localStorage.getItem(NEW_PREFIX + 'letterDelayMin'); if(lMin) letterDelayMin = parseFloat(lMin);
+
+        let lMax = localStorage.getItem(NEW_PREFIX + 'letterDelayMax'); if(lMax) letterDelayMax = parseFloat(lMax);
+
+        let cMin = localStorage.getItem(NEW_PREFIX + 'callMin'); if(cMin) callMin = parseFloat(cMin);
+
+        let cMax = localStorage.getItem(NEW_PREFIX + 'callMax'); if(cMax) callMax = parseFloat(cMax);
+
+        let enInc = localStorage.getItem(NEW_PREFIX + 'enableIncoming'); if(enInc) enableIncoming = enInc === 'true';
+
+        document.getElementById('activeMinMin').value = activeMin;
+
+        document.getElementById('activeMaxMin').value = activeMax;
+
+        document.getElementById('enableActiveTalk').checked = enableActive;
+
+        document.getElementById('replyDelaySecMin').value = replyDelaySecMin;
+
+        document.getElementById('replyDelaySecMax').value = replyDelaySecMax;
+
+        document.getElementById('letterDelayMin').value = letterDelayMin;
+
+        document.getElementById('letterDelayMax').value = letterDelayMax;
+
+        document.getElementById('callMinMin').value = callMin;
+
+        document.getElementById('callMaxMin').value = callMax;
+
+        document.getElementById('enableIncomingCall').checked = enableIncoming;
+
+        loadAvatars();
+
+    }
+
+    function addMessage(sender, text, img, isLetter=false, isReply=false) {
+
+        let newMsg = { id:Date.now(), sender, text, img, time:getCurrentTime(), timestamp:Date.now(), isLetter, isReply };
+
+        allMessages.push(newMsg);
+
+        saveAllData();
+
+        renderMessages();
+
+        if(isReply) strongNotify(sender, text||"图片");
+
+        return newMsg;
+
+    }
+
+    function renderMessages() {
+
+        const area = document.getElementById('msgsArea');
+
+        if(!allMessages.length) { area.innerHTML = '<div style="text-align:center;color:#93aec9;padding:30px;">✨ 开始群聊 ✨</div>'; return; }
+
+        area.innerHTML = '';
+
+        const now = Date.now();
+
+        allMessages.forEach(msg => {
+
+            const avatar = memberAvatars[msg.sender] || (msg.sender==="老狗·祁煜"?"🐟":msg.sender==="星儿·大宝"?"⭐":"🌸");
+
+            const canRevoke = (msg.sender === currentUser) && (now - msg.timestamp < 120000);
+
+            let content = msg.text ? escapeHtml(msg.text) : (msg.img ? `<img src="${msg.img}" style="max-width:180px;max-height:140px;border-radius:16px;" onclick="window.open(this.src)">` : '');
+
+            if(msg.isLetter) content = `[信] ${content}`;
+
+            if(msg.isReply) content = `[回信] ${content}`;
+
+            const msgDiv = document.createElement('div');
+
+            msgDiv.className = 'msg';
+
+            msgDiv.innerHTML = `
+
+                <div class="msg-avatar">${renderAvatar(avatar)}</div>
+
+                <div class="msg-content">
+
+                    <div class="msg-name">${escapeHtml(msg.sender)}</div>
+
+                    <div class="bubble">${content}</div>
+
+                    <div class="msg-time">${msg.time}</div>
+
+                </div>
+
+                ${canRevoke ? `<div class="msg-revoke" data-id="${msg.id}">撤回</div>` : ''}
+
+            `;
+
+            area.appendChild(msgDiv);
+
+        });
+
+        document.querySelectorAll('.msg-revoke').forEach(el=>el.addEventListener('click',(e)=>{
+
+            let id = parseInt(el.dataset.id);
+
+            allMessages = allMessages.filter(m=>m.id!==id);
+
+            saveAllData(); renderMessages();
+
+        }));
+
+        area.scrollTop = area.scrollHeight;
+
+    }
+
+    // 回复和主动发送逻辑
+
+    function getRandomReplyDelayMs() { let min=Math.max(1,replyDelaySecMin), max=Math.max(min+1,replyDelaySecMax); return (Math.random()*(max-min)+min)*1000; }
+
+    function getRandomLetterDelayMs() { let min=Math.max(0.5,letterDelayMin), max=Math.max(min+0.5,letterDelayMax); return (Math.random()*(max-min)+min)*60*60*1000; }
+
+    function replyToUser() {
+
+        if(phrases.length===0) return;
+
+        let cnt=Math.floor(Math.random()*3)+1;
+
+        let shuffled=[...phrases]; for(let i=shuffled.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]; }
+
+        let selected=shuffled.slice(0,Math.min(cnt,shuffled.length));
+
+        let repliers=["老狗·祁煜","星儿·大宝"];
+
+        selected.forEach((item,idx)=>{
+
+            setTimeout(()=>{ let replier=repliers[Math.floor(Math.random()*repliers.length)]; addMessage(replier,item.text,null,false,false); }, getRandomReplyDelayMs() + idx*800);
+
+        });
+
+    }
+
+    function sendActiveMessage() { if(!enableActive || phrases.length===0) return; let idx=Math.floor(Math.random()*phrases.length); addMessage(Math.random()>0.5?"老狗·祁煜":"星儿·大宝", phrases[idx].text, null, false, false); scheduleActiveMessage(); }
+
+    function scheduleActiveMessage() { if(activeTimer) clearTimeout(activeTimer); if(!enableActive) return; let minMs=activeMin*60000, maxMs=activeMax*60000; activeTimer=setTimeout(()=>sendActiveMessage(), Math.floor(Math.random()*(maxMs-minMs+1)+minMs)); }
+
+    function onUserSend() { if(activeTimer) clearTimeout(activeTimer); replyToUser(); scheduleActiveMessage(); }
+
+    function sendText() { let inp=document.getElementById('msgInput'); let txt=inp.value.trim(); if(!txt) return; addMessage(currentUser,txt,null); inp.value=''; onUserSend(); }
+
+    function sendImage() { let input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.onchange=e=>{ let file=e.target.files[0]; if(!file) return; let reader=new FileReader(); reader.onload=ev=>{ addMessage(currentUser,null,ev.target.result); onUserSend(); }; reader.readAsDataURL(file); }; input.click(); }
+
+    // 视频通话完整
+
+    function startCall(target, isIncoming = false) {
+
+        if(callActive) return;
+
+        const callModal = document.getElementById('callModal');
+
+        const callStatus = document.getElementById('callStatus');
+
+        const callTimerDiv = document.getElementById('callTimer');
+
+        const hangupBtn = document.getElementById('hangupBtn');
+
+        const callTitle = document.getElementById('callTitle');
+
+        const callButtonsDiv = document.getElementById('callButtons');
+
+        callTitle.innerText = isIncoming ? `与 ${target} 通话中` : `正在呼叫 ${target}...`;
+
+        callButtonsDiv.style.display = 'none';
+
+        callStatus.innerText = isIncoming ? '通话中' : '等待接听...';
+
+        hangupBtn.style.display = 'inline-block';
+
+        if(!isIncoming) {
+
+            setTimeout(() => {
+
+                if(!callActive) {
+
+                    callActive = true;
+
+                    callStatus.innerText = '通话中';
+
+                    callTimerDiv.style.display = 'block';
+
+                    callStartTime = Date.now();
+
+                    if(callTimerInterval) clearInterval(callTimerInterval);
+
+                    callTimerInterval = setInterval(() => {
+
+                        if(callActive && callStartTime) {
+
+                            const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+
+                            const mins = Math.floor(elapsed / 60);
+
+                            const secs = elapsed % 60;
+
+                            callTimerDiv.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+
+                        }
+
+                    }, 1000);
+
+                    addMessage('系统', `📞 与 ${target} 开始视频通话`, null);
+
+                }
+
+            }, 2000 + Math.random()*1000);
+
+        } else {
+
+            callActive = true;
+
+            callStatus.innerText = '通话中';
+
+            callTimerDiv.style.display = 'block';
+
+            callStartTime = Date.now();
+
+            if(callTimerInterval) clearInterval(callTimerInterval);
+
+            callTimerInterval = setInterval(() => {
+
+                if(callActive && callStartTime) {
+
+                    const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+
+                    const mins = Math.floor(elapsed / 60);
+
+                    const secs = elapsed % 60;
+
+                    callTimerDiv.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+
+                }
+
+            }, 1000);
+
+            addMessage('系统', `📞 与 ${target} 开始视频通话`, null);
+
+        }
+
+        callModal.style.display = 'flex';
+
+        hangupBtn.onclick = () => {
+
+            if(callActive) {
+
+                clearInterval(callTimerInterval);
+
+                addMessage('系统', `📞 与 ${target} 的视频通话已结束 (${callTimerDiv.innerText})`, null);
+
+                callActive = false;
+
+                callStartTime = null;
+
+            }
+
+            resetCallModal();
+
+            callModal.style.display = 'none';
+
+        };
+
+    }
+
+    function resetCallModal() {
+
+        const callModal = document.getElementById('callModal');
+
+        const callStatus = document.getElementById('callStatus');
+
+        const callTimerDiv = document.getElementById('callTimer');
+
+        const hangupBtn = document.getElementById('hangupBtn');
+
+        const callTitle = document.getElementById('callTitle');
+
+        const callButtonsDiv = document.getElementById('callButtons');
+
+        callTitle.innerText = '选择通话对象';
+
+        callButtonsDiv.style.display = 'block';
+
+        callStatus.innerText = '';
+
+        callTimerDiv.style.display = 'none';
+
+        hangupBtn.style.display = 'none';
+
+        if(callTimerInterval) clearInterval(callTimerInterval);
+
+        callActive = false;
+
+        callStartTime = null;
+
+    }
+
+    function bindCallButtons() {
+
+        const acceptBtn = document.getElementById('acceptBtn');
+
+        const rejectBtn = document.getElementById('rejectBtn');
+
+        if (acceptBtn) {
+
+            const newAccept = acceptBtn.cloneNode(true);
+
+            acceptBtn.parentNode.replaceChild(newAccept, acceptBtn);
+
+            newAccept.onclick = () => {
+
+                if(currentRingtoneAudio) currentRingtoneAudio.pause();
+
+                document.getElementById('incomingModal').style.display = 'none';
+
+                let from = document.getElementById('incomingFrom').innerText.replace('📞 来自 ', '');
+
+                startCall(from, true);
+
+                if(incomingTimeout) clearTimeout(incomingTimeout);
+
+            };
+
+        }
+
+        if (rejectBtn) {
+
+            const newReject = rejectBtn.cloneNode(true);
+
+            rejectBtn.parentNode.replaceChild(newReject, rejectBtn);
+
+            newReject.onclick = () => {
+
+                if(currentRingtoneAudio) currentRingtoneAudio.pause();
+
+                document.getElementById('incomingModal').style.display = 'none';
+
+                let from = document.getElementById('incomingFrom').innerText.replace('📞 来自 ', '');
+
+                addMessage('系统', `📞 拒绝来自 ${from} 的视频通话`, null);
+
+                if(incomingTimeout) clearTimeout(incomingTimeout);
+
+            };
+
+        }
+
+    }
+
+    function incomingCall(from) {
+
+        if(!enableIncoming) return;
+
+        playRingtone();
+
+        document.getElementById('incomingModal').style.display = 'flex';
+
+        document.getElementById('incomingFrom').innerText = `📞 来自 ${from} 的视频邀请`;
+
+        if(incomingTimeout) clearTimeout(incomingTimeout);
+
+        incomingTimeout = setTimeout(() => {
+
+            document.getElementById('incomingModal').style.display = 'none';
+
+            stopRingtone();
+
+        }, 30000);
+
+        bindCallButtons();
+
+    }
+
+    function scheduleIncomingCall() {
+
+        if(incomingTimer) clearTimeout(incomingTimer);
+
+        if(!enableIncoming) return;
+
+        let minMs = callMin * 60 * 1000;
+
+        let maxMs = callMax * 60 * 1000;
+
+        let delay = Math.floor(Math.random() * (maxMs - minMs + 1) + minMs);
+
+        incomingTimer = setTimeout(() => {
+
+            let caller = Math.random() > 0.5 ? "老狗·祁煜" : "星儿·大宝";
+
+            incomingCall(caller);
+
+            scheduleIncomingCall();
+
+        }, delay);
+
+    }
+
+    // 铃声管理
+
+    function bufferToWav(buffer) {
+
+        const numChannels = buffer.numberOfChannels;
+
+        const sampleRate = buffer.sampleRate;
+
+        const format = 1;
+
+        const bitDepth = 16;
+
+        const samples = buffer.getChannelData(0);
+
+        const dataLength = samples.length * 2;
+
+        const bufferLength = 44 + dataLength;
+
+        const arrayBuffer = new ArrayBuffer(bufferLength);
+
+        const view = new DataView(arrayBuffer);
+
+        function writeString(offset, str) { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); }
+
+        writeString(0, 'RIFF');
+
+        view.setUint32(4, bufferLength - 8, true);
+
+        writeString(8, 'WAVE');
+
+        writeString(12, 'fmt ');
+
+        view.setUint32(16, 16, true);
+
+        view.setUint16(20, format, true);
+
+        view.setUint16(22, numChannels, true);
+
+        view.setUint32(24, sampleRate, true);
+
+        view.setUint32(28, sampleRate * numChannels * bitDepth / 8, true);
+
+        view.setUint16(32, numChannels * bitDepth / 8, true);
+
+        view.setUint16(34, bitDepth, true);
+
+        writeString(36, 'data');
+
+        view.setUint32(40, dataLength, true);
+
+        let offset = 44;
+
+        for (let i = 0; i < samples.length; i++) {
+
+            const intSample = Math.max(-32768, Math.min(32767, Math.floor(samples[i] * 32767)));
+
+            view.setInt16(offset, intSample, true);
+
+            offset += 2;
+
+        }
+
+        return new Blob([arrayBuffer], { type: 'audio/wav' });
+
+    }
+
+    function base64ToBlob(base64, mime) {
+
+        const byteCharacters = atob(base64);
+
+        const byteNumbers = new Array(byteCharacters.length);
+
+        for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
+
+        const byteArray = new Uint8Array(byteNumbers);
+
+        return new Blob([byteArray], { type: mime });
+
+    }
+
+    function initRingtone() {
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        const duration = 0.3;
+
+        const sampleRate = audioContext.sampleRate;
+
+        const frameCount = duration * sampleRate;
+
+        const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
+
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < frameCount; i++) {
+
+            let t = i / sampleRate;
+
+            let freq = 800;
+
+            data[i] = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 10);
+
+        }
+
+        const blob = new Blob([bufferToWav(buffer)], { type: 'audio/wav' });
+
+        defaultRingtoneUrl = URL.createObjectURL(blob);
+
+        const savedRingtone = localStorage.getItem('customRingtone');
+
+        if (savedRingtone) {
+
+            try {
+
+                const blobData = base64ToBlob(savedRingtone, 'audio/mpeg');
+
+                ringtoneUrl = URL.createObjectURL(blobData);
+
+            } catch(e) { console.warn(e); }
+
+        }
+
+        if (!ringtoneUrl) ringtoneUrl = defaultRingtoneUrl;
+
+    }
+
+    function playRingtone() {
+
+        if (!ringtoneUrl) return;
+
+        if (currentRingtoneAudio) currentRingtoneAudio.pause();
+
+        const audio = new Audio(ringtoneUrl);
+
+        currentRingtoneAudio = audio;
+
+        audio.play().catch(e=>console.log);
+
+        setTimeout(() => { if(currentRingtoneAudio===audio) audio.pause(); }, 10000);
+
+    }
+
+    function stopRingtone() { if(currentRingtoneAudio) currentRingtoneAudio.pause(); }
+
+    function saveCustomRingtone(file) {
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+
+            const base64 = e.target.result.split(',')[1];
+
+            if (base64) {
+
+                localStorage.setItem('customRingtone', base64);
+
+                if (ringtoneUrl && ringtoneUrl !== defaultRingtoneUrl) URL.revokeObjectURL(ringtoneUrl);
+
+                const blob = base64ToBlob(base64, file.type);
+
+                ringtoneUrl = URL.createObjectURL(blob);
+
+                showToast('铃声已保存');
+
+            } else showToast('读取失败');
+
+        };
+
+        reader.readAsDataURL(file);
+
+    }
+
+    function resetRingtone() {
+
+        if (ringtoneUrl && ringtoneUrl !== defaultRingtoneUrl) URL.revokeObjectURL(ringtoneUrl);
+
+        localStorage.removeItem('customRingtone');
+
+        ringtoneUrl = defaultRingtoneUrl;
+
+        showToast('已恢复默认铃声');
+
+    }
+
+    // 回信相关
+
+    function executeReply() {
+
+        if(phrases.length===0) { showToast("词库为空"); return false; }
+
+        let count=Math.floor(Math.random()*(30-10+1)+10);
+
+        let shuffled=[...phrases]; for(let i=shuffled.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]; }
+
+        let selected=shuffled.slice(0,Math.min(count,shuffled.length));
+
+        let delay=0;
+
+        selected.forEach(item=>{ setTimeout(()=>{ let replier=Math.random()>0.5?"老狗·祁煜":"星儿·大宝"; addMessage(replier,item.text,null,false,true); }, delay); delay+=1500; });
+
+        return true;
+
+    }
+
+    function scheduleLetterReply(letterContent) {
+
+        if(currentLetterTimer) clearTimeout(currentLetterTimer);
+
+        let delayMs=getRandomLetterDelayMs();
+
+        let letterData={time:Date.now(),content:letterContent,delayMs};
+
+        localStorage.setItem(NEW_PREFIX+'pendingLetter', JSON.stringify(letterData));
+
+        currentLetterTimer=setTimeout(()=>{
+
+            let pend=localStorage.getItem(NEW_PREFIX+'pendingLetter');
+
+            if(pend){ executeReply(); localStorage.removeItem(NEW_PREFIX+'pendingLetter'); }
+
+            currentLetterTimer=null;
+
+        }, delayMs);
+
+        showToast(`✉️ 信已发出，预计 ${(delayMs/3600000).toFixed(1)} 小时后回信`);
+
+    }
+
+    function manualForceReply() {
+
+        let pend=localStorage.getItem(NEW_PREFIX+'pendingLetter');
+
+        if(!pend){ showToast("无等待信件"); return; }
+
+        let p=JSON.parse(pend);
+
+        if(Date.now()-p.time>=letterDelayMax*3600000){
+
+            executeReply();
+
+            localStorage.removeItem(NEW_PREFIX+'pendingLetter');
+
+            if(currentLetterTimer) clearTimeout(currentLetterTimer);
+
+            currentLetterTimer=null;
+
+            showToast("已补发");
+
+        } else showToast(`还剩约 ${((p.time+p.delayMs-Date.now())/3600000).toFixed(1)} 小时`);
+
+    }
+
+    function checkAndRecoverLetter() {
+
+        let pend=localStorage.getItem(NEW_PREFIX+'pendingLetter');
+
+        if(!pend) return;
+
+        let p=JSON.parse(pend);
+
+        if(Date.now()-p.time>=letterDelayMax*3600000){
+
+            if(confirm(`超过${letterDelayMax}小时未回，补发？`)){
+
+                executeReply();
+
+                localStorage.removeItem(NEW_PREFIX+'pendingLetter');
+
+                if(currentLetterTimer) clearTimeout(currentLetterTimer);
+
+                currentLetterTimer=null;
+
+            }
+
+        } else {
+
+            let remain=p.time+p.delayMs-Date.now();
+
+            if(remain>0){
+
+                if(currentLetterTimer) clearTimeout(currentLetterTimer);
+
+                currentLetterTimer=setTimeout(()=>{
+
+                    let ck=localStorage.getItem(NEW_PREFIX+'pendingLetter');
+
+                    if(ck){ executeReply(); localStorage.removeItem(NEW_PREFIX+'pendingLetter'); }
+
+                    currentLetterTimer=null;
+
+                }, remain);
+
+            } else { executeReply(); localStorage.removeItem(NEW_PREFIX+'pendingLetter'); }
+
+        }
+
+    }
+
+    // 词库管理
+
+    function renderCategories() {
+
+        const area=document.getElementById('categoryList');
+
+        area.innerHTML=categories.map((c,i)=>`<div class="category-item"><span>${escapeHtml(c)}</span><button class="del-cat" data-idx="${i}">✖</button></div>`).join('');
+
+        document.querySelectorAll('.del-cat').forEach(btn=>btn.addEventListener('click',()=>{
+
+            let idx=parseInt(btn.dataset.idx);
+
+            let catName=categories[idx];
+
+            if(catName==="默认"){ alert("不能删除默认分类"); return; }
+
+            categories.splice(idx,1);
+
+            phrases.forEach(p=>{ if(p.category===catName) p.category="默认"; });
+
+            saveAllData(); renderCategories(); renderPhrases(); updateCatSelects();
+
+        }));
+
+    }
+
+    function addCategory() { let newCat=prompt("新分类名"); if(newCat && newCat.trim() && !categories.includes(newCat.trim())){ categories.push(newCat.trim()); saveAllData(); renderCategories(); updateCatSelects(); } }
+
+    function updateCatSelects() {
+
+        ['newPhraseCat','batchCategorySelect'].forEach(id=>{ let sel=document.getElementById(id); if(sel) sel.innerHTML=categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join(''); });
+
+    }
+
+    function renderPhrases() {
+
+        const area=document.getElementById('phraseList');
+
+        area.innerHTML=phrases.map((p,i)=>`<div class="phrase-item"><div class="phrase-info"><span>${escapeHtml(p.text)}</span><span class="phrase-cat">${escapeHtml(p.category)}</span></div><button class="del-phrase" data-idx="${i}">✖</button></div>`).join('');
+
+        document.querySelectorAll('.del-phrase').forEach(btn=>btn.addEventListener('click',()=>{ phrases.splice(parseInt(btn.dataset.idx),1); saveAllData(); renderPhrases(); }));
+
+    }
+
+    function addPhrase() { let txt=document.getElementById('newPhraseText').value.trim(); let cat=document.getElementById('newPhraseCat').value; if(!txt) return; phrases.push({text:txt,category:cat}); saveAllData(); renderPhrases(); document.getElementById('newPhraseText').value=''; }
+
+    // 导入导出词库
+
+    function exportPhrases() {
+
+        let data = { categories, phrases };
+
+        let jsonStr = JSON.stringify(data, null, 2);
+
+        let blob = new Blob([jsonStr], { type: "application/json" });
+
+        let a = document.createElement('a');
+
+        let url = URL.createObjectURL(blob);
+
+        a.href = url;
+
+        a.download = `gxw_phrases_${Date.now()}.json`;
+
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+    }
+
+    function importPhrases() {
+
+        let input = document.createElement('input');
+
+        input.type = 'file';
+
+        input.accept = 'application/json';
+
+        input.onchange = e => {
+
+            let file = e.target.files[0];
+
+            if(!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = ev => {
+
+                try {
+
+                    let d = JSON.parse(ev.target.result);
+
+                    if(d.categories) { categories = d.categories; saveAllData(); renderCategories(); updateCatSelects(); }
+
+                    if(d.phrases) { phrases = d.phrases; saveAllData(); renderPhrases(); }
+
+                    alert("导入成功");
+
+                } catch(e) { alert("解析失败"); }
+
+            };
+
+            reader.readAsText(file);
+
+        };
+
+        input.click();
+
+    }
+
+    // 导入导出聊天记录
+
+    function exportMessages() {
+
+        let data = allMessages;
+
+        let jsonStr = JSON.stringify(data, null, 2);
+
+        let blob = new Blob([jsonStr], { type: "application/json" });
+
+        let a = document.createElement('a');
+
+        let url = URL.createObjectURL(blob);
+
+        a.href = url;
+
+        a.download = `gxw_messages_${Date.now()}.json`;
+
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+    }
+
+    function importMessages() {
+
+        let input = document.createElement('input');
+
+        input.type = 'file';
+
+        input.accept = 'application/json';
+
+        input.onchange = e => {
+
+            let file = e.target.files[0];
+
+            if(!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = ev => {
+
+                try {
+
+                    let imported = JSON.parse(ev.target.result);
+
+                    if(Array.isArray(imported)) {
+
+                        if(confirm("是否合并导入？\n确定将追加聊天记录，不会覆盖现有记录。")) {
+
+                            allMessages = allMessages.concat(imported);
+
+                            saveAllData();
+
+                            renderMessages();
+
+                            showToast(`导入 ${imported.length} 条聊天记录`);
+
+                        }
+
+                    } else alert("文件格式错误");
+
+                } catch(e) { alert("解析失败"); }
+
+            };
+
+            reader.readAsText(file);
+
+        };
+
+        input.click();
+
+    }
+
+    // 批量添加词条
+
+    function batchAddPhrases() {
+
+        const raw = document.getElementById('batchPhrasesText').value;
+
+        if(!raw.trim()) { showToast("请输入词条"); return; }
+
+        const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
+
+        if(lines.length===0) return;
+
+        const cat = document.getElementById('batchCategorySelect').value;
+
+        let added=0;
+
+        for(let line of lines) {
+
+            if(!phrases.some(p=>p.text===line && p.category===cat)) {
+
+                phrases.push({ text:line, category:cat });
+
+                added++;
+
+            }
+
+        }
+
+        if(added) { saveAllData(); renderPhrases(); showToast(`添加 ${added} 条`); document.getElementById('batchPhrasesText').value=''; }
+
+        else showToast("无新词条");
+
+    }
+
+    function clearAllPhrases() {
+
+        if(confirm("⚠️ 确定要清空所有字卡吗？此操作不可撤销。")) {
+
+            phrases = [];
+
+            saveAllData();
+
+            renderPhrases();
+
+            showToast("已清空所有字卡");
+
+        }
+
+    }
+
+    // 背景换色
+
+    function setChatBg(value, isImage=false, imageData=null) {
+
+        const msgsDiv=document.getElementById('msgsArea');
+
+        if(!msgsDiv) return;
+
+        if(isImage && imageData){
+
+            msgsDiv.style.backgroundImage=`url(${imageData})`;
+
+            msgsDiv.style.backgroundSize='cover';
+
+            msgsDiv.style.backgroundPosition='center';
+
+            msgsDiv.style.backgroundColor='transparent';
+
+            localStorage.setItem('chatBgType','image');
+
+            localStorage.setItem('chatBgImage',imageData);
+
+        } else {
+
+            msgsDiv.style.backgroundImage='none';
+
+            msgsDiv.style.backgroundColor=value;
+
+            localStorage.setItem('chatBgType','color');
+
+            localStorage.setItem('chatBgColor',value);
+
+        }
+
+    }
+
+    function loadSavedBg() {
+
+        let type=localStorage.getItem('chatBgType'), color=localStorage.getItem('chatBgColor'), image=localStorage.getItem('chatBgImage');
+
+        if(type==='image' && image) setChatBg('',true,image);
+
+        else if(color) setChatBg(color);
+
+        else setChatBg('#f6fafd');
+
+    }
+
+    function resetBgToDefault() {
+
+        localStorage.removeItem('chatBgType');
+
+        localStorage.removeItem('chatBgColor');
+
+        localStorage.removeItem('chatBgImage');
+
+        setChatBg('#f6fafd');
+
+        showToast("已重置背景");
+
+    }
+
+    function strongNotify(sender, content) {
+
+        if(titleInterval) clearInterval(titleInterval);
+
+        let cnt=0;
+
+        titleInterval = setInterval(()=>{ document.title = (cnt++%2===0)?'📩 新回信！':originalTitle; if(cnt>8){ clearInterval(titleInterval); document.title=originalTitle; } },400);
+
+        playBeep();
+
+        if(Notification.permission==='granted') new Notification(`✨ 来自 ${sender} 的回信 ✨`,{body:content.slice(0,50)});
+
+        else if(Notification.permission!=='denied') Notification.requestPermission();
+
+        showToast(`💌 收到回信：${content.slice(0,30)}`);
+
+    }
+
+    function playBeep() { try { new (window.AudioContext||window.webkitAudioContext)().createOscillator().start(); } catch(e){} }
+
+    // 绑定事件
+
+    function bindEvents() {
+
+        document.querySelectorAll('.bg-btn').forEach(btn=>btn.addEventListener('click',()=>{ let val=btn.getAttribute('data-bg'); if(val) setChatBg(val); }));
+
+        document.getElementById('resetBgBtn')?.addEventListener('click',resetBgToDefault);
+
+        document.getElementById('customBgColor')?.addEventListener('input',e=>setChatBg(e.target.value));
+
+        document.getElementById('bgImageUpload')?.addEventListener('change',e=>{
+
+            let file=e.target.files[0]; if(file){ let reader=new FileReader(); reader.onload=ev=>setChatBg('',true,ev.target.result); reader.readAsDataURL(file); }
+
+        });
+
+        document.getElementById('ringtoneUpload')?.addEventListener('change',e=>{
+
+            let file=e.target.files[0]; if(file) saveCustomRingtone(file);
+
+        });
+
+        document.getElementById('testRingtoneBtn')?.addEventListener('click',()=>{ playRingtone(); setTimeout(()=>stopRingtone(),5000); });
+
+        document.getElementById('resetRingtoneBtn')?.addEventListener('click',resetRingtone);
+
+        document.getElementById('sendBtn').onclick=sendText;
+
+        document.getElementById('msgInput').addEventListener('keypress',e=>{ if(e.key==='Enter') sendText(); });
+
+        document.getElementById('emojiBtn').onclick=sendImage;
+
+        document.getElementById('addPhraseBtn').onclick=addPhrase;
+
+        document.getElementById('addCategoryBtn').onclick=addCategory;
+
+        document.getElementById('importPhrasesBtn').onclick=importPhrases;
+
+        document.getElementById('exportPhrasesBtn').onclick=exportPhrases;
+
+        document.getElementById('importMessagesBtn').onclick=importMessages;
+
+        document.getElementById('exportMessagesBtn').onclick=exportMessages;
+
+        document.getElementById('batchAddBtn').onclick=batchAddPhrases;
+
+        document.getElementById('clearAllPhrasesBtn').onclick=clearAllPhrases;
+
+        document.getElementById('forceReplyBtn').onclick=manualForceReply;
+
+        document.getElementById('videoCallBtn').onclick=()=>{ resetCallModal(); document.getElementById('callModal').style.display='flex'; };
+
+        document.querySelectorAll('#callButtons button').forEach(btn=>btn.addEventListener('click',(e)=>{ let target=e.target.getAttribute('data-target'); if(target) startCall(target); }));
+
+        document.getElementById('closeCallBtn').addEventListener('click',()=>{ document.getElementById('callModal').style.display='none'; resetCallModal(); });
+
+        let letterModal=document.getElementById('letterModal');
+
+        document.getElementById('letterBtn').onclick=()=>letterModal.style.display='flex';
+
+        document.getElementById('closeLetterBtn').onclick=()=>letterModal.style.display='none';
+
+        document.getElementById('sendLetterBtn').onclick=()=>{
+
+            let con=document.getElementById('letterContent').value.trim();
+
+            if(con){ addMessage(currentUser,con,null,true); scheduleLetterReply(con); letterModal.style.display='none'; document.getElementById('letterContent').value=''; }
+
+        };
+
+        let sidebar=document.getElementById('sidebar'), menuBtn=document.getElementById('menuBtn'), overlay=document.getElementById('menuOverlay');
+
+        menuBtn.onclick=()=>{ sidebar.classList.add('open'); overlay.style.display='block'; };
+
+        overlay.onclick=()=>{ sidebar.classList.remove('open'); overlay.style.display='none'; };
+
+        sidebar.addEventListener('click',e=>e.stopPropagation());
+
+    }
+
+    function init() {
+
+        loadAllData();
+
+        renderCategories(); renderPhrases(); updateCatSelects(); renderMessages();
+
+        bindEvents();
+
+        if(enableActive) scheduleActiveMessage();
+
+        if(enableIncoming) scheduleIncomingCall();
+
+        checkAndRecoverLetter();
+
+        loadSavedBg();
+
+        initRingtone();
+
+        if(Notification.permission==='default') Notification.requestPermission();
+
+        document.getElementById('copyBtn').onclick=()=>{
+
+            let html=document.documentElement.outerHTML;
+
+            navigator.clipboard.writeText(html).then(()=>alert('代码已复制，可保存为.html文件'));
+
+        };
+
+    }
+
+    init();
+
+</script>
+
+</body>
+
+</html>
